@@ -10,12 +10,25 @@ if not exist %VCPKG_TOOLCHAIN_FILE% (
     goto :usage
 )
 
-:: Verify that the Vulkan SDK is installed
-if not defined VULKAN_SDK (
-    echo Please install the Vulkan SDK and set the VULKAN_SDK enviroment variable to its location:
-    echo https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe
+:: Verify that the SIMSDK is installed
+if not defined SIMDIS_SDK_DIR (
+    echo Warning: Please set SIMDIS_SDK_DIR to your SIMDIS SDK install folder
     goto :end
 )
+
+if not defined ROCKY_DIR (
+    echo Warning: Please set ROCKY_DIR to your Rocky install folder
+    goto :end
+)
+
+set CMAKE_MODULE_PATH=%SIMDIS_SDK_DIR%\lib\cmake
+set CMAKE_MODULE_PATH=%CMAKE_MODULE_PATH:\=/%
+echo %CMAKE_MODULE_PATH%
+
+set CMAKE_PREFIX_PATH=%ROCKY_DIR%\share\rocky
+set CMAKE_PREFIX_PATH=%CMAKE_PREFIX_PATH:\=/%
+
+:: Verify that the 
 
 :: Detect visual studio version
 set VS_VERSION=Visual Studio 17 2022
@@ -99,7 +112,9 @@ cmake ^
     -DCMAKE_BUILD_TYPE=RelWithDebInfo ^
     -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" ^
     -DCMAKE_TOOLCHAIN_FILE=%VCPKG_TOOLCHAIN_FILE% ^
-    -DVCPKG_MANIFEST_DIR="%MANIFEST_DIR%"
+    -DVCPKG_MANIFEST_DIR="%MANIFEST_DIR%" ^
+    -DCMAKE_PREFIX_PATH="%CMAKE_PREFIX_PATH%" ^
+    -DCMAKE_MODULE_PATH="%CMAKE_MODULE_PATH%"
 
 goto end
 

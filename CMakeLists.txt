@@ -9,14 +9,18 @@ endif()
 
 project(simsdk-vk VERSION 1.0.0 LANGUAGES CXX C)
 
+# Locate the SIMDIS SDK
+find_package(SIMDIS_SDK REQUIRED)
+if (NOT simCore_FOUND)
+    message(FATAL_ERROR "SIMDIS SDK not found - try adding it to your CMAKE_MODULE_PATH")
+endif()
+
 find_package(rocky CONFIG REQUIRED)
-find_package(simCore CONFIG REQUIRED)
-find_package(simData CONFIG REQUIRED)
+find_package(rocky_vsg CONFIG REQUIRED)
 
 # secondary dependencies
-find_package(glslang CONFIG REQUIRED)
 find_package(entt CONFIG REQUIRED)
-find_package(Protobuf CONFIG REQUIRED)
+find_package(glslang CONFIG REQUIRED)
 
 file(GLOB HEADERS *.h)
 file(GLOB SOURCES *.cpp)
