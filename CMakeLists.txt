@@ -22,8 +22,8 @@ find_package(rocky_vsg CONFIG REQUIRED)
 find_package(entt CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)
 
-file(GLOB HEADERS *.h)
-file(GLOB SOURCES *.cpp)
+file(GLOB HEADERS src/*.h)
+file(GLOB SOURCES src/*.cpp)
 
 add_executable(simdemo ${SOURCES} ${HEADERS})
 
