@@ -1,4 +1,4 @@
-#include <rocky_vsg/Application.h>
+#include <rocky/vsg/Application.h>
 #include <rocky/TMSImageLayer.h>
 #include <simCore.h>
 #include <simData.h>
@@ -9,7 +9,7 @@
 int
 error_out(const rocky::Status& s)
 {
-    std::cout << s.message << std::endl;
+    rocky::Log()->critical(s.message);
     return -1;
 }
 
@@ -29,19 +29,19 @@ simData::ObjectId
 addPlatform(simData::DataStore& dataStore)
 {
     simData::DataStore::Transaction xaction;
-    simData::PlatformProperties* newProps = dataStore.addPlatform(&xaction);
-    simData::ObjectId id = newProps->id();
-    xaction.complete(&newProps);
+    auto props = dataStore.addPlatform(&xaction);
+    auto id = props->id();
+    xaction.complete(&props);
 
     simData::PlatformPrefs* prefs = dataStore.mutable_platformPrefs(id, &xaction);
-    prefs->mutable_commonprefs()->set_name("Airplane");
+    prefs->mutable_commonprefs()->set_name("AB-652");
     prefs->set_icon(EXAMPLE_AIRPLANE_ICON);
     prefs->set_scale(2.0f);
     prefs->set_dynamicscale(true);
     prefs->set_circlehilightcolor(0xffffffff);
     prefs->mutable_commonprefs()->set_draw(true);
     prefs->mutable_commonprefs()->mutable_labelprefs()->set_draw(true);
-    prefs->mutable_commonprefs()->mutable_labelprefs()->set_overlayfontpointsize(36.0f);
+    prefs->mutable_commonprefs()->mutable_labelprefs()->set_overlayfontpointsize(24.0f);
     prefs->mutable_commonprefs()->mutable_labelprefs()->set_alignment(simData::ALIGN_RIGHT_CENTER);
     prefs->mutable_commonprefs()->mutable_localgrid()->mutable_speedring()->set_timeformat(simData::ELAPSED_SECONDS);
     prefs->mutable_commonprefs()->mutable_localgrid()->mutable_speedring()->set_radius(2);
@@ -56,12 +56,12 @@ simData::ObjectId
 addBeam(simData::ObjectId hostId, simData::DataStore& dataStore)
 {
     simData::DataStore::Transaction xaction;
-    simData::BeamProperties* beamProps = dataStore.addBeam(&xaction);
-    simData::ObjectId id = beamProps->id();
-    beamProps->set_hostid(hostId);
-    xaction.complete(&beamProps);
+    auto props = dataStore.addBeam(&xaction);
+    auto id = props->id();
+    props->set_hostid(hostId);
+    xaction.complete(&props);
 
-    simData::BeamPrefs* prefs = dataStore.mutable_beamPrefs(id, &xaction);
+    auto prefs = dataStore.mutable_beamPrefs(id, &xaction);
     prefs->set_azimuthoffset(simCore::DEG2RAD * 0.0);
     prefs->set_verticalwidth(simCore::DEG2RAD * 25.0);
     prefs->set_horizontalwidth(simCore::DEG2RAD * 30.0);
@@ -79,16 +79,16 @@ addGate(simData::ObjectId hostId, simData::DataStore& dataStore)
 {
     simData::DataStore::Transaction transaction;
 
-    simData::GateProperties* gateProps = dataStore.addGate(&transaction);
-    simData::ObjectId result = gateProps->id();
-    gateProps->set_hostid(hostId);
-    transaction.complete(&gateProps);
+    auto props = dataStore.addGate(&transaction);
+    auto id = props->id();
+    props->set_hostid(hostId);
+    transaction.complete(&props);
 
-    simData::GatePrefs* gatePrefs = dataStore.mutable_gatePrefs(result, &transaction);
-    gatePrefs->set_gateazimuthoffset(simCore::DEG2RAD * 0.0);
-    transaction.complete(&gatePrefs);
+    auto prefs = dataStore.mutable_gatePrefs(id, &transaction);
+    prefs->set_gateazimuthoffset(simCore::DEG2RAD * 0.0);
+    transaction.complete(&prefs);
 
-    return result;
+    return id;
 }
 
 int
@@ -146,16 +146,18 @@ main(int argc, char** argv)
         beam_update->set_range(35000.0);
         x.complete(&beam_update);
     }
-    
-    // Run the frame loop
-    auto start = std::chrono::steady_clock::now();
-    while (app.frame())
-    {
-        auto now = std::chrono::steady_clock::now();
-        double time = 1e-6 * (double)std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        data_store.update(time);
-        adapter->update(&data_store, { plat_id, beam_id });
-    }
 
-    return 0;
+    auto start = std::chrono::steady_clock::now();
+
+    // Install a frame loop update function
+    app.updateFunction = [&]()
+        {
+            auto now = std::chrono::steady_clock::now();
+            double time = 1e-6 * (double)std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+            data_store.update(time);
+            adapter->update(&data_store, { plat_id, beam_id });
+        };
+
+    // Run until the user quits
+    return app.run();
 }

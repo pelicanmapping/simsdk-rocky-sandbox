@@ -1,6 +1,6 @@
 #pragma once
 #include "SimulationContext.h"
-#include <rocky_vsg/Icon.h>
+#include <rocky/vsg/Icon.h>
 
 struct Platform
 {

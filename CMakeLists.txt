@@ -16,10 +16,11 @@ if (NOT simCore_FOUND)
 endif()
 
 find_package(rocky CONFIG REQUIRED)
-find_package(rocky_vsg CONFIG REQUIRED)
 
 # secondary dependencies
 find_package(entt CONFIG REQUIRED)
+find_package(vsg CONFIG REQUIRED)
+find_package(vsgXchange CONFIG REQUIRED)
 find_package(glslang CONFIG REQUIRED)
 
 file(GLOB HEADERS src/*.h)
@@ -27,6 +28,6 @@ file(GLOB SOURCES src/*.cpp)
 
 add_executable(simdemo ${SOURCES} ${HEADERS})
 
-target_link_libraries(simdemo PUBLIC rocky::rocky rocky::rocky_vsg VSI::simCore VSI::simData)
+target_link_libraries(simdemo PUBLIC rocky::rocky VSI::simCore VSI::simData)
 
 install(TARGETS simdemo RUNTIME DESTINATION bin)

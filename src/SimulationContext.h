@@ -3,8 +3,8 @@
 #include <simData.h>
 #include <unordered_map>
 #include <rocky/Image.h>
-#include <rocky_vsg/Label.h>
-#include <rocky_vsg/InstanceVSG.h>
+#include <rocky/vsg/Label.h>
+#include <rocky/vsg/InstanceVSG.h>
 #include <entt/entt.hpp>
 #include <vsg/io/read.h>
 #include <vsg/text/Font.h>

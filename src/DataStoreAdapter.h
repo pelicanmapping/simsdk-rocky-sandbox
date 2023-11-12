@@ -3,8 +3,8 @@
 #include "Platform.h"
 #include "Beam.h"
 #include "Gate.h"
-#include <rocky_vsg/Icon.h>
-#include <rocky_vsg/Line.h>
+#include <rocky/vsg/Icon.h>
+#include <rocky/vsg/Line.h>
 
 
 //! Listener that relays DataStore messages to the appropriate Adapter.
@@ -47,7 +47,7 @@ public:
         {
             simData::DataStore::Transaction x;
             auto props = ds->gateProperties(id, &x);
-            //gates.create(props, sim);
+            gates.create(props, sim);
             x.complete(&props);
         }
     }
@@ -67,17 +67,17 @@ public:
         else if (type & simData::BEAM)
         {
             simData::DataStore::Transaction x;
-            auto prefs = ds->beamPrefs(id, &x);
-            beams.applyPrefs(prefs, id, sim);
-            x.complete(&prefs);
+            auto props = ds->beamProperties(id, &x);
+            beams.applyProps(props, sim);
+            x.complete(&props);
         }
 
         else if (type & simData::GATE)
         {
             simData::DataStore::Transaction x;
-            auto prefs = ds->gatePrefs(id, &x);
-            //gates.applyPrefs(prefs, id);
-            x.complete(&prefs);
+            auto props = ds->gateProperties(id, &x);
+            gates.applyProps(props, sim);
+            x.complete(&props);
         }
     }
 
@@ -118,26 +118,26 @@ public:
 
             if (type & simData::PLATFORM)
             {
-                auto plat_slice = ds->platformUpdateSlice(id);
-                if (plat_slice && plat_slice->current())
+                auto slice = ds->platformUpdateSlice(id);
+                if (slice && slice->current())
                 {
-                    platforms.applyUpdate(plat_slice->current(), id, sim);
+                    platforms.applyUpdate(slice->current(), id, sim);
                 }
             }
             else if (type & simData::BEAM)
             {
-                auto beam_slice = ds->beamUpdateSlice(id);
-                if (beam_slice && beam_slice->current())
+                auto slice = ds->beamUpdateSlice(id);
+                if (slice && slice->current())
                 {
-                    beams.applyUpdate(beam_slice->current(), id, sim);
+                    beams.applyUpdate(slice->current(), id, sim);
                 }
             }
             else if (type & simData::GATE)
             {
-                auto gate_slice = ds->gateUpdateSlice(id);
-                if (gate_slice && gate_slice->current())
+                auto slice = ds->gateUpdateSlice(id);
+                if (slice && slice->current())
                 {
-                    gates.applyUpdate(gate_slice->current(), id, sim);
+                    gates.applyUpdate(slice->current(), id, sim);
                 }
             }
         }
