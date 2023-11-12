@@ -10,18 +10,13 @@ endif()
 project(simsdk-vk VERSION 1.0.0 LANGUAGES CXX C)
 
 # Locate the SIMDIS SDK
+# Set CMAKE_MODULE_PATH to the folder containing FindSIMDIS_SDK.cmake!
 find_package(SIMDIS_SDK REQUIRED)
 if (NOT simCore_FOUND)
     message(FATAL_ERROR "SIMDIS SDK not found - try adding it to your CMAKE_MODULE_PATH")
 endif()
 
 find_package(rocky CONFIG REQUIRED)
-
-# secondary dependencies
-find_package(entt CONFIG REQUIRED)
-find_package(vsg CONFIG REQUIRED)
-find_package(vsgXchange CONFIG REQUIRED)
-find_package(glslang CONFIG REQUIRED)
 
 file(GLOB HEADERS src/*.h)
 file(GLOB SOURCES src/*.cpp)
