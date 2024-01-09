@@ -130,7 +130,7 @@ public:
         }
 
         line.style = rocky::LineStyle();
-        line.style->color = { 1, 1, 0, 1 };
+        line.style->color = vsg::vec4{ 1, 1, 0, 1 };
         line.style->width = 2.0f;
 
         line.dirty();
