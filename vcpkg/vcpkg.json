@@ -10,8 +10,6 @@
         "nlohmann-json",
         "tinyxml",
         "vsg",
-        "vsgxchange",
-        "vsgimgui",
-        "protobuf"
+        "vsgxchange"
     ]
 }

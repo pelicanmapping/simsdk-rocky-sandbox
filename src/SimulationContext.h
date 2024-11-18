@@ -1,14 +1,18 @@
 #pragma once
-#include <simCore.h>
-#include <simData.h>
-#include <unordered_map>
+#include <simData/ObjectId.h>
+#include <simData/DataStore.h>
+
 #include <rocky/Image.h>
 #include <rocky/vsg/Label.h>
 #include <rocky/vsg/InstanceVSG.h>
+#include <rocky/Log.h>
 #include <entt/entt.hpp>
+
 #include <vsg/io/read.h>
 #include <vsg/text/Font.h>
 #include <vsgXchange/all.h>
+
+#include <unordered_map>
 
 namespace
 {
@@ -38,7 +42,7 @@ struct SimulationContext
     rocky::InstanceVSG& instance;
 
     //! global ECS registry
-    entt::registry& registry;
+    rocky::ecs::Registry& vis_registry;
 
     //! mapping table from simData::ObjectId to entt::entity
     ObjectToEntityLUT entities;
@@ -67,30 +71,30 @@ struct SimulationContext
 class SimEntityAdapter
 {
 public:
-    void applyCommonPrefs(const simData::CommonPrefs* new_prefs, const simData::CommonPrefs& old_prefs, entt::entity entity, SimulationContext& sim)
+    void applyCommonPrefs(const simData::CommonPrefs* new_prefs, const simData::CommonPrefs& old_prefs, entt::entity entity, SimulationContext& sim, entt::registry& registry)
     {
         if (VALUE_CHANGED(name, *new_prefs, old_prefs))
         {
-            auto& label = sim.registry.get_or_emplace<rocky::Label>(entity);
+            auto& label = registry.get_or_emplace<rocky::Label>(entity);
             label.text = new_prefs->name();
-            if (!label.style.font) label.style.font = sim.get_font("arial.ttf");
+            if (!label.style.font) label.style.font = sim.instance.runtime().defaultFont;
             label.dirty();
         }
 
         if (new_prefs->has_labelprefs())
         {
-            applyLabelPrefs(&new_prefs->labelprefs(), old_prefs.labelprefs(), entity, sim);
+            applyLabelPrefs(&new_prefs->labelprefs(), old_prefs.labelprefs(), entity, sim, registry);
         }
     }
 
-    void applyLabelPrefs(const simData::LabelPrefs* new_prefs, const simData::LabelPrefs& old_prefs, entt::entity entity, SimulationContext& sim)
+    void applyLabelPrefs(const simData::LabelPrefs* new_prefs, const simData::LabelPrefs& old_prefs, entt::entity entity, SimulationContext& sim, entt::registry& registry)
     {
         if (VALUE_CHANGED(overlayfontname, *new_prefs, old_prefs))
         {
             auto& font = sim.get_font(new_prefs->overlayfontname());
             if (font)
             {
-                auto& label = sim.registry.get_or_emplace<rocky::Label>(entity);
+                auto& label = registry.get_or_emplace<rocky::Label>(entity);
                 label.style.font = font;
                 label.dirty();
             }
@@ -98,14 +102,14 @@ public:
 
         if (VALUE_CHANGED(overlayfontpointsize , *new_prefs, old_prefs))
         {
-            auto& label = sim.registry.get_or_emplace<rocky::Label>(entity);
+            auto& label = registry.get_or_emplace<rocky::Label>(entity);
             label.style.pointSize = new_prefs->overlayfontpointsize();
             label.dirty();
         }
 
         if (VALUE_CHANGED(alignment, *new_prefs, old_prefs))
         {
-            auto& label = sim.registry.get_or_emplace<rocky::Label>(entity);
+            auto& label = registry.get_or_emplace<rocky::Label>(entity);
             auto align = new_prefs->alignment();
             switch (align) {
             case simData::TextAlignment::ALIGN_RIGHT_CENTER:

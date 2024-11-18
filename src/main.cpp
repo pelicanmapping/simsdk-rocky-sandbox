@@ -1,7 +1,7 @@
 #include <rocky/vsg/Application.h>
 #include <rocky/TMSImageLayer.h>
-#include <simCore.h>
-#include <simData.h>
+#include <simCore/Calc/Angle.h>
+#include <simData/MemoryDataStore.h>
 #include "DataStoreAdapter.h"
 
 #define EXAMPLE_AIRPLANE_ICON "https://github.com/gwaldron/osgearth/blob/master/data/airport.png?raw=true"
@@ -100,16 +100,14 @@ main(int argc, char** argv)
         getchar();
     }
 
-    simCore::checkVersionThrow();
-
     // Application object for the 3D map display.
     rocky::Application app(argc, argv);
     rocky::Log()->set_level(rocky::log::level::info);
 
     // Add some example data to the base map
     rocky::Status s = createDefaultExampleMap(app);
-    if (s.failed())
-        return error_out(s);
+    //if (s.failed())
+    //    return error_out(s);
 
     // The SIM SDK data stream.
     simData::MemoryDataStore data_store;

@@ -20,18 +20,20 @@ public:
 
     DataStoreAdapter(rocky::Application& app_) :
         app(app_),
-        sim({ app.instance, app.entities })
+        sim({ app.instance, app.registry })
     {
         //nop        
     }
 
     void onAddEntity(simData::DataStore* ds, simData::ObjectId id, simData::ObjectType type) override
     {
+        auto [lock, registry] = app.registry.write();
+
         if (type & simData::PLATFORM)
         {
             simData::DataStore::Transaction x;
             auto props = ds->platformProperties(id, &x);
-            platforms.create(props, sim);
+            platforms.create(props, sim, registry);
             x.complete(&props);
         }
 
@@ -39,7 +41,7 @@ public:
         {
             simData::DataStore::Transaction x;
             auto props = ds->beamProperties(id, &x);
-            beams.create(props, sim);
+            beams.create(props, sim, registry);
             x.complete(&props);
         }
 
@@ -47,20 +49,22 @@ public:
         {
             simData::DataStore::Transaction x;
             auto props = ds->gateProperties(id, &x);
-            gates.create(props, sim);
+            gates.create(props, sim, registry);
             x.complete(&props);
         }
     }
 
     void onPropertiesChange(simData::DataStore* ds, simData::ObjectId id) override
     {
+        auto [lock, registry] = app.registry.write();
+
         auto type = ds->objectType(id);
 
         if (type & simData::PLATFORM)
         {
             simData::DataStore::Transaction x;
             auto props = ds->platformProperties(id, &x);
-            platforms.applyProps(props, sim);
+            platforms.applyProps(props, sim, registry);
             x.complete(&props);
         }
 
@@ -68,7 +72,7 @@ public:
         {
             simData::DataStore::Transaction x;
             auto props = ds->beamProperties(id, &x);
-            beams.applyProps(props, sim);
+            beams.applyProps(props, sim, registry);
             x.complete(&props);
         }
 
@@ -76,20 +80,22 @@ public:
         {
             simData::DataStore::Transaction x;
             auto props = ds->gateProperties(id, &x);
-            gates.applyProps(props, sim);
+            gates.applyProps(props, sim, registry);
             x.complete(&props);
         }
     }
 
     void onPrefsChange(simData::DataStore* ds, simData::ObjectId id) override
     {
+        auto [lock, registry] = app.registry.write();
+
         auto type = ds->objectType(id);
 
         if (type & simData::PLATFORM)
         {
             simData::DataStore::Transaction x;
             auto prefs = ds->platformPrefs(id, &x);
-            platforms.applyPrefs(prefs, id, sim);
+            platforms.applyPrefs(prefs, id, sim, registry);
             x.complete(&prefs);
         }
 
@@ -97,7 +103,7 @@ public:
         {
             simData::DataStore::Transaction x;
             auto prefs = ds->beamPrefs(id, &x);
-            beams.applyPrefs(prefs, id, sim);
+            beams.applyPrefs(prefs, id, sim, registry);
             x.complete(&prefs);
         }
 
@@ -105,13 +111,15 @@ public:
         {
             simData::DataStore::Transaction x;
             auto prefs = ds->gatePrefs(id, &x);
-            gates.applyPrefs(prefs, id, sim);
+            gates.applyPrefs(prefs, id, sim, registry);
             x.complete(&prefs);
         }
     }
 
     void update(simData::DataStore* ds, const std::vector<simData::ObjectId>& ids)
     {
+        auto [lock, registry] = app.registry.read();
+
         for (auto& id : ids)
         {
             auto type = ds->objectType(id);
@@ -121,7 +129,7 @@ public:
                 auto slice = ds->platformUpdateSlice(id);
                 if (slice && slice->current())
                 {
-                    platforms.applyUpdate(slice->current(), id, sim);
+                    platforms.applyUpdate(slice->current(), id, sim, registry);
                 }
             }
             else if (type & simData::BEAM)
@@ -129,7 +137,7 @@ public:
                 auto slice = ds->beamUpdateSlice(id);
                 if (slice && slice->current())
                 {
-                    beams.applyUpdate(slice->current(), id, sim);
+                    beams.applyUpdate(slice->current(), id, sim, registry);
                 }
             }
             else if (type & simData::GATE)
@@ -137,7 +145,7 @@ public:
                 auto slice = ds->gateUpdateSlice(id);
                 if (slice && slice->current())
                 {
-                    gates.applyUpdate(slice->current(), id, sim);
+                    gates.applyUpdate(slice->current(), id, sim, registry);
                 }
             }
         }

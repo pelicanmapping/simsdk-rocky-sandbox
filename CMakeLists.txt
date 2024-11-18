@@ -4,17 +4,15 @@ cmake_minimum_required(VERSION 3.7)
 if (${CMAKE_TOOLCHAIN_FILE} MATCHES ".*vcpkg.cmake.*")
     message(STATUS "Building with vcpkg toolchain.")
     set(USING_VCPKG ON)
-    set(VCPKG_OVERLAY_PORTS ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/ports)
+    #set(VCPKG_OVERLAY_PORTS ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/ports)
 endif()
 
 project(simsdk-vk VERSION 1.0.0 LANGUAGES CXX C)
 
 # Locate the SIMDIS SDK
-# Set CMAKE_MODULE_PATH to the folder containing FindSIMDIS_SDK.cmake!
-find_package(SIMDIS_SDK REQUIRED)
-if (NOT simCore_FOUND)
-    message(FATAL_ERROR "SIMDIS SDK not found - try adding it to your CMAKE_MODULE_PATH")
-endif()
+
+# Use an external script to load the SIMDIS SDK targets
+include($ENV{SIMDIS_SDK_DIR}/share/ExternalSdkProject/CMakeModules/ImportSIMDIS_SDK.cmake)
 
 find_package(rocky CONFIG REQUIRED)
 

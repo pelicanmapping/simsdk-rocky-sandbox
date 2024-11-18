@@ -15,83 +15,82 @@ struct Beam
 class BeamAdapter : public SimEntityAdapter
 {
 public:
-    const Beam* create(const simData::BeamProperties* props, SimulationContext& sim)
+    const Beam* create(const simData::BeamProperties* props, SimulationContext& sim, entt::registry& registry)
     {
         ROCKY_SOFT_ASSERT_AND_RETURN(props, nullptr);
         ROCKY_SOFT_ASSERT_AND_RETURN(props->has_id(), nullptr);
 
-        auto entt_id = sim.entities[props->id()] = sim.registry.create();
-        auto& beam = sim.registry.emplace<Beam>(entt_id);
-        // give it an empty transform so hosted objects can find it:
-        sim.registry.emplace<rocky::Transform>(entt_id);
+        auto entt_id = sim.entities[props->id()] = registry.create();
+        auto& beam = registry.emplace<Beam>(entt_id);
 
-        applyProps(props, sim);
+        // give it an empty transform so hosted objects can find it:
+        registry.emplace<rocky::Transform>(entt_id);
+
+        applyProps(props, sim, registry);
         return &beam;
     }
 
-    void applyProps(const simData::BeamProperties* new_props, SimulationContext& sim)
+    void applyProps(const simData::BeamProperties* new_props, SimulationContext& sim, entt::registry& registry)
     {
         ROCKY_SOFT_ASSERT_AND_RETURN(new_props, void());
 
         auto entt_id = sim.entities[new_props->id()];
-        auto& beam = sim.registry.get<Beam>(entt_id);
+        auto& beam = registry.get<Beam>(entt_id);
 
         if (VALUE_CHANGED(hostid, *new_props, beam.props))
         {
             ROCKY_SOFT_ASSERT_AND_RETURN(sim.entities.count(new_props->hostid()) > 0, void());
 
             auto host_entt_id = sim.entities[new_props->hostid()];
-            auto& transform = sim.registry.get<rocky::Transform>(entt_id);
-            transform.parent = sim.registry.try_get<rocky::Transform>(host_entt_id);
+            auto& transform = registry.get<rocky::Transform>(entt_id);
+            transform.parent = registry.try_get<rocky::Transform>(host_entt_id);
             ROCKY_SOFT_ASSERT(transform.parent != nullptr);
         }
 
         beam.props = *new_props;
     }
 
-    void applyPrefs(const simData::BeamPrefs* new_prefs, const simData::ObjectId beam_id, SimulationContext& sim)
+    void applyPrefs(const simData::BeamPrefs* new_prefs, const simData::ObjectId beam_id, SimulationContext& sim, entt::registry& registry)
     {
         ROCKY_SOFT_ASSERT_AND_RETURN(new_prefs, void());
 
         auto entt_id = sim.entities[beam_id];
-        auto& beam = sim.registry.get<Beam>(entt_id);
+        auto& beam = registry.get<Beam>(entt_id);
 
         // detect changes and apply new prefs.
-        auto& line = sim.registry.emplace_or_replace<rocky::Line>(entt_id);
+        auto& line = registry.emplace_or_replace<rocky::Line>(entt_id);
         makeBeamGeometry(line, *new_prefs, beam.update);
 
         if (new_prefs->has_commonprefs())
         {
-            applyCommonPrefs(&new_prefs->commonprefs(), beam.prefs.commonprefs(), entt_id, sim);
+            applyCommonPrefs(&new_prefs->commonprefs(), beam.prefs.commonprefs(), entt_id, sim, registry);
         }
 
         beam.prefs = *new_prefs;
     }
 
-    void applyUpdate(const simData::BeamUpdate* new_update, const simData::ObjectId beam_id, SimulationContext& sim)
+    void applyUpdate(const simData::BeamUpdate* new_update, const simData::ObjectId beam_id, SimulationContext& sim, entt::registry& registry)
     {
         auto entt_id = sim.entities[beam_id];
-        auto& beam = sim.registry.get<Beam>(entt_id);
+        auto& beam = registry.get<Beam>(entt_id);
 
         if (VALUE_CHANGED(azimuth, *new_update, beam.update))
         {
-            auto& transform = sim.registry.get<rocky::Transform>(entt_id);
-            vsg::dquat rot;
-            rocky::euler_radians_to_quaternion(beam.update.elevation(), 0.0, new_update->azimuth(), rot);
-            transform.local_matrix = vsg::rotate(rot);
+            auto& transform = registry.get<rocky::Transform>(entt_id);
+            auto rot = rocky::quaternion_from_euler_radians<vsg::dquat>(beam.update.elevation(), 0.0, new_update->azimuth());
+            transform.localMatrix = vsg::rotate(rot);
         }
 
         if (VALUE_CHANGED(elevation , *new_update, beam.update))
         {
-            auto& transform = sim.registry.get<rocky::Transform>(entt_id);
-            vsg::dquat rot;
-            rocky::euler_radians_to_quaternion(new_update->elevation(), 0.0, beam.update.azimuth(), rot);
-            transform.local_matrix = vsg::rotate(rot);
+            auto& transform = registry.get<rocky::Transform>(entt_id);
+            auto rot = rocky::quaternion_from_euler_radians<vsg::dquat>(new_update->elevation(), 0.0, beam.update.azimuth());
+            transform.localMatrix = vsg::rotate(rot);
         }
 
         if (VALUE_CHANGED(range, *new_update, beam.update))
         {
-            auto& line = sim.registry.emplace_or_replace<rocky::Line>(entt_id);
+            auto& line = registry.emplace_or_replace<rocky::Line>(entt_id);
             makeBeamGeometry(line, beam.prefs, *new_update);
         }
 
@@ -126,12 +125,16 @@ public:
 
         for (auto& strip : strips)
         {
-            line.push(strip.begin(), strip.end());
+            for (int i = 0; i < strip.size() - 1; ++i)
+            {
+                line.points.emplace_back(strip[i]);
+                line.points.emplace_back(strip[i + 1]);
+            }
         }
 
-        line.style = rocky::LineStyle();
-        line.style->color = vsg::vec4{ 1, 1, 0, 1 };
-        line.style->width = 2.0f;
+        line.topology = rocky::Line::Topology::Segments;
+        line.style.color = vsg::vec4{ 1, 1, 0, 1 };
+        line.style.width = 2.0f;
 
         line.dirty();
     }
