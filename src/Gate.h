@@ -1,6 +1,6 @@
 #pragma once
 #include "SimulationContext.h"
-#include <rocky/vsg/Line.h>
+#include <rocky/vsg/ecs.h>
 
 
 struct Gate

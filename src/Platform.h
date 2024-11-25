@@ -1,6 +1,6 @@
 #pragma once
 #include "SimulationContext.h"
-#include <rocky/vsg/Icon.h>
+#include <rocky/vsg/ecs.h>
 
 struct Platform
 {
@@ -90,7 +90,7 @@ public:
 
         if (new_update->has_x() || new_update->has_y() || new_update->has_z())
         {
-            auto& transform = registry.get_or_emplace<rocky::Transform>(entt_id);
+            auto& transform = registry.get<rocky::Transform>(entt_id);
             rocky::GeoPoint point(rocky::SRS::ECEF, new_update->x(), new_update->y(), new_update->z());
             transform.setPosition(point);
         }

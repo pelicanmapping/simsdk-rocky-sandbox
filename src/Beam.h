@@ -1,6 +1,6 @@
 #pragma once
 #include "SimulationContext.h"
-#include <rocky/vsg/Line.h>
+#include <rocky/vsg/ecs.h>
 
 
 struct Beam
@@ -25,6 +25,10 @@ public:
 
         // give it an empty transform so hosted objects can find it:
         registry.emplace<rocky::Transform>(entt_id);
+
+        // emplace a Line primitive for drawing the beam's frustum.
+        // we will fill in the geometry later.
+        auto& line = registry.emplace<rocky::Line>(entt_id);
 
         applyProps(props, sim, registry);
         return &beam;
@@ -90,7 +94,7 @@ public:
 
         if (VALUE_CHANGED(range, *new_update, beam.update))
         {
-            auto& line = registry.emplace_or_replace<rocky::Line>(entt_id);
+            auto& line = registry.get<rocky::Line>(entt_id);
             makeBeamGeometry(line, beam.prefs, *new_update);
         }
 
@@ -116,23 +120,13 @@ public:
         auto LL = vsg::dvec3(x, y, -z) + origin;
         auto LR = vsg::dvec3(x, -y, -z) + origin;
 
-        std::vector<std::vector<vsg::dvec3>> strips =
-        {
-            { UR, UL, LL, LR, UR },
-            { UR, origin, UL },
-            { LR, origin, LL }
+        line.topology = rocky::Line::Topology::Segments;
+
+        line.points = {
+            UR, UL, UL, LL, LL, LR, LR, UR,
+            UR, origin, UL, origin, LR, origin, LL, origin
         };
 
-        for (auto& strip : strips)
-        {
-            for (int i = 0; i < strip.size() - 1; ++i)
-            {
-                line.points.emplace_back(strip[i]);
-                line.points.emplace_back(strip[i + 1]);
-            }
-        }
-
-        line.topology = rocky::Line::Topology::Segments;
         line.style.color = vsg::vec4{ 1, 1, 0, 1 };
         line.style.width = 2.0f;
 

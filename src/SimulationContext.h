@@ -3,7 +3,7 @@
 #include <simData/DataStore.h>
 
 #include <rocky/Image.h>
-#include <rocky/vsg/Label.h>
+#include <rocky/vsg/ecs.h>
 #include <rocky/vsg/InstanceVSG.h>
 #include <rocky/Log.h>
 #include <entt/entt.hpp>
@@ -40,9 +40,6 @@ struct SimulationContext
 {
     //! global rocky instance
     rocky::InstanceVSG& instance;
-
-    //! global ECS registry
-    rocky::ecs::Registry& vis_registry;
 
     //! mapping table from simData::ObjectId to entt::entity
     ObjectToEntityLUT entities;

@@ -3,8 +3,8 @@
 #include "Platform.h"
 #include "Beam.h"
 #include "Gate.h"
-#include <rocky/vsg/Icon.h>
-#include <rocky/vsg/Line.h>
+#include <rocky/vsg/Application.h>
+#include <rocky/vsg/ecs.h>
 
 
 //! Listener that relays DataStore messages to the appropriate Adapter.
@@ -20,7 +20,7 @@ public:
 
     DataStoreAdapter(rocky::Application& app_) :
         app(app_),
-        sim({ app.instance, app.registry })
+        sim({ app.instance })
     {
         //nop        
     }
