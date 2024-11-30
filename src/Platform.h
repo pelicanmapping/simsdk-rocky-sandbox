@@ -49,7 +49,7 @@ public:
         {
             auto& icon = registry.get_or_emplace<rocky::Icon>(entt_id);
 
-            auto io = sim.instance.io();
+            auto io = sim.runtime->io;
             auto image = io.services.readImageFromURI(new_prefs->icon(), io);
             if (image.status.ok())
             {

@@ -3,8 +3,8 @@
 #include <simData/DataStore.h>
 
 #include <rocky/Image.h>
+#include <rocky/vsg/VSGContext.h>
 #include <rocky/vsg/ecs.h>
-#include <rocky/vsg/InstanceVSG.h>
 #include <rocky/Log.h>
 #include <entt/entt.hpp>
 
@@ -38,8 +38,8 @@ using ObjectToEntityLUT = std::unordered_map<simData::ObjectId, entt::entity>;
 
 struct SimulationContext
 {
-    //! global rocky instance
-    rocky::InstanceVSG& instance;
+    //! rocky rutime context
+    rocky::VSGContext runtime;
 
     //! mapping table from simData::ObjectId to entt::entity
     ObjectToEntityLUT entities;
@@ -56,7 +56,7 @@ struct SimulationContext
         auto& font = fonts[name];
         if (!font.valid())
         {
-            font = vsg::read_cast<vsg::Font>(name, instance.runtime().readerWriterOptions);
+            font = vsg::read_cast<vsg::Font>(name, runtime->readerWriterOptions);
         }
         return font;
     }
@@ -74,7 +74,7 @@ public:
         {
             auto& label = registry.get_or_emplace<rocky::Label>(entity);
             label.text = new_prefs->name();
-            if (!label.style.font) label.style.font = sim.instance.runtime().defaultFont;
+            if (!label.style.font) label.style.font = sim.runtime->defaultFont;
             label.dirty();
         }
 

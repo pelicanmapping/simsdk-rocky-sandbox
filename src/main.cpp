@@ -4,7 +4,7 @@
 #include <simData/MemoryDataStore.h>
 #include "DataStoreAdapter.h"
 
-#define EXAMPLE_AIRPLANE_ICON "https://github.com/gwaldron/osgearth/blob/master/data/airport.png?raw=true"
+#define EXAMPLE_AIRPLANE_ICON "https://readymap.org/readymap/filemanager/download/public/icons/airport.png"
 
 int
 error_out(const rocky::Status& s)

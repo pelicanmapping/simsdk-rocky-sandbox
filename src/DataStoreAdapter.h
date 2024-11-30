@@ -20,7 +20,7 @@ public:
 
     DataStoreAdapter(rocky::Application& app_) :
         app(app_),
-        sim({ app.instance })
+        sim({ app.context })
     {
         //nop        
     }
