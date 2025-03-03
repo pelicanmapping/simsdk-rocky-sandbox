@@ -91,8 +91,8 @@ public:
         if (new_update->has_x() || new_update->has_y() || new_update->has_z())
         {
             auto& transform = registry.get<rocky::Transform>(entt_id);
-            rocky::GeoPoint point(rocky::SRS::ECEF, new_update->x(), new_update->y(), new_update->z());
-            transform.setPosition(point);
+            transform.position = rocky::GeoPoint(rocky::SRS::ECEF, new_update->x(), new_update->y(), new_update->z());
+            transform.dirty();
         }
 
         platform.update = *new_update;

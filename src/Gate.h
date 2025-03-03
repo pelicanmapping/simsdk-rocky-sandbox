@@ -42,8 +42,6 @@ public:
 
             auto host_entt_id = sim.entities[new_props->hostid()];
             auto& transform = registry.get<rocky::Transform>(entt_id);
-            transform.parent = registry.try_get<rocky::Transform>(host_entt_id);
-            ROCKY_SOFT_ASSERT(transform.parent != nullptr);
         }
 
         gate.props = *new_props;

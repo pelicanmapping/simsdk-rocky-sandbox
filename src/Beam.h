@@ -47,8 +47,6 @@ public:
 
             auto host_entt_id = sim.entities[new_props->hostid()];
             auto& transform = registry.get<rocky::Transform>(entt_id);
-            transform.parent = registry.try_get<rocky::Transform>(host_entt_id);
-            ROCKY_SOFT_ASSERT(transform.parent != nullptr);
         }
 
         beam.props = *new_props;
@@ -78,18 +76,23 @@ public:
         auto entt_id = sim.entities[beam_id];
         auto& beam = registry.get<Beam>(entt_id);
 
+        auto& host = registry.get<Platform>(sim.entities[beam.props.hostid()]);
+        auto& host_transform = registry.get<rocky::Transform>(sim.entities[host.props.id()]);
+
         if (VALUE_CHANGED(azimuth, *new_update, beam.update))
         {
             auto& transform = registry.get<rocky::Transform>(entt_id);
-            auto rot = rocky::quaternion_from_euler_radians<vsg::dquat>(beam.update.elevation(), 0.0, new_update->azimuth());
-            transform.localMatrix = vsg::rotate(rot);
+            transform = host_transform;
+            auto rot = rocky::quaternion_from_euler_radians(beam.update.elevation(), 0.0, new_update->azimuth());
+            transform.localMatrix *= glm::mat4_cast(rot);
         }
 
         if (VALUE_CHANGED(elevation , *new_update, beam.update))
         {
             auto& transform = registry.get<rocky::Transform>(entt_id);
-            auto rot = rocky::quaternion_from_euler_radians<vsg::dquat>(new_update->elevation(), 0.0, beam.update.azimuth());
-            transform.localMatrix = vsg::rotate(rot);
+            transform = host_transform;
+            auto rot = rocky::quaternion_from_euler_radians(beam.update.elevation(), 0.0, new_update->azimuth());
+            transform.localMatrix *= glm::mat4_cast(rot);
         }
 
         if (VALUE_CHANGED(range, *new_update, beam.update))
